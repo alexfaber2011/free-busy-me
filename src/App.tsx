@@ -1,26 +1,29 @@
-import React from 'react';
-import logo from './logo.svg';
+import * as React from 'react';
 import './App.css';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+} from 'react-router-dom';
+import SignInScreen from './views/sign-in/SignIn';
+import {AuthContextProvider} from 'contexts/auth';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthContextProvider>
+      <h1>Calendar Gap</h1>
+      <Router>
+        <Switch>
+          <Route path='/sign-in'>
+            <SignInScreen />
+          </Route>
+          <Route path='/'>
+            <h2>Welcome home</h2>
+          </Route>
+        </Switch>
+      </Router>
+    </AuthContextProvider>
   );
-}
+};
 
 export default App;
