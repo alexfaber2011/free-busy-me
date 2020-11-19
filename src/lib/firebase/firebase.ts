@@ -1,6 +1,8 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
-import User from './user';
+import 'firebase/firestore';
+import UserCollection from './collections/user-collection';
+import User from 'lib/user';
 
 // General Setup
 
@@ -20,10 +22,14 @@ type OnAuthStateChangeListener = (user: User) => void;
 
 class FirebaseHelper {
   private firebase: typeof firebase;
+  public db: firebase.firestore.Firestore;
+  public users: UserCollection;
 
   constructor(injectedFirebase?: typeof firebase) {
     this.firebase = injectedFirebase || firebase;
     this.firebase.initializeApp(firebaseConfig);
+    this.db = this.firebase.firestore();
+    this.users = new UserCollection(this.db);
   }
 
   async signIn(
@@ -33,8 +39,22 @@ class FirebaseHelper {
     await this.firebase.auth().signInWithEmailAndPassword(email, password);
   }
 
-  async signUp(email: string, password: string): Promise<void> {
-    await this.firebase.auth().createUserWithEmailAndPassword(email, password);
+  async signUp(email: string, password: string): Promise<User> {
+    const userCredential = await this.firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, password);
+
+    if (!userCredential.user) return new User();
+
+    const newUser = new User({
+      email: userCredential.user.email || '',
+      id: userCredential.user.uid,
+      isSignedIn: true
+    });
+
+    await this.users.add(newUser);
+
+    return newUser;
   }
 
   onAuthStateChange(cb: OnAuthStateChangeListener): firebase.Unsubscribe {
@@ -56,17 +76,6 @@ class FirebaseHelper {
     provider.addScope(calendars);
     provider.addScope(events);
     this.firebase.auth().signInWithRedirect(provider);
-  }
-
-  async getUserInfoAfterRedirect(): Promise<string> {
-    try {
-      const result = await firebase.auth().getRedirectResult();
-      console.log('result: ', result);
-      return 'hello';
-    } catch (e) {
-      console.error(e);
-      throw e;
-    }
   }
 }
 

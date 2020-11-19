@@ -1,4 +1,4 @@
-interface InitializationOptions {
+export interface InitializationOptions {
   email: string | null;
   id: string;
   isSignedIn: boolean;

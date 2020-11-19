@@ -14,8 +14,8 @@ const SignInScreen: React.FC = () => {
     signIn(email, password);
   };
 
-  const handleSignUp = () => {
-    signUp(email, password);
+  const handleSignUp = async () => {
+    await signUp(email, password);
   };
 
   return (

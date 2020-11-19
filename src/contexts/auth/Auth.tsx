@@ -5,13 +5,13 @@ import firebase from 'lib/firebase';
 interface IAuthContext {
   user: User;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>; // TODO - confirm password is the same
+  signUp: (email: string, password: string) => Promise<User>; // TODO - confirm password is the same
 }
 
 const defaultContext: IAuthContext = {
   user: new User(),
   signIn: () => Promise.resolve(),
-  signUp: () => Promise.resolve(),
+  signUp: () => Promise.resolve(new User()),
 };
 
 const AuthContext = React.createContext<IAuthContext>(defaultContext);
