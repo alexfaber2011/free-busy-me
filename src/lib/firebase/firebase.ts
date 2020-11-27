@@ -1,7 +1,7 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
-import UserCollection from './collections/user-collection';
+import UserCollection, { SaveCalendarAccessTokenOptions } from './users';
 import User from 'lib/user';
 
 // General Setup
@@ -20,7 +20,17 @@ const firebaseConfig = {
 
 type OnAuthStateChangeListener = (user: User) => void;
 
-class FirebaseHelper {
+// Because the types for result.credential aren't right, this'll cover our
+// use case
+type GoogleAuthCredential = { accessToken: string };
+
+export interface IFirebaseHelper {
+  onAuthStateChange(cb: OnAuthStateChangeListener): firebase.Unsubscribe;
+  signInWithGoogle(): void;
+  onRedirectComplete(): Promise<void>;
+}
+
+class FirebaseHelper implements IFirebaseHelper {
   private firebase: typeof firebase;
   public db: firebase.firestore.Firestore;
   public users: UserCollection;
@@ -30,31 +40,6 @@ class FirebaseHelper {
     this.firebase.initializeApp(firebaseConfig);
     this.db = this.firebase.firestore();
     this.users = new UserCollection(this.db);
-  }
-
-  async signIn(
-    email: string,
-    password: string
-  ): Promise<void> {
-    await this.firebase.auth().signInWithEmailAndPassword(email, password);
-  }
-
-  async signUp(email: string, password: string): Promise<User> {
-    const userCredential = await this.firebase
-      .auth()
-      .createUserWithEmailAndPassword(email, password);
-
-    if (!userCredential.user) return new User();
-
-    const newUser = new User({
-      email: userCredential.user.email || '',
-      id: userCredential.user.uid,
-      isSignedIn: true
-    });
-
-    await this.users.add(newUser);
-
-    return newUser;
   }
 
   onAuthStateChange(cb: OnAuthStateChangeListener): firebase.Unsubscribe {
@@ -77,6 +62,25 @@ class FirebaseHelper {
     provider.addScope(events);
     this.firebase.auth().signInWithRedirect(provider);
   }
+
+  async onRedirectComplete(): Promise<void> {
+    try {
+      const result = await this.firebase.auth().getRedirectResult();
+      if (result.user === null) return;
+
+      const credential = result.credential as unknown as GoogleAuthCredential;
+      const opts: SaveCalendarAccessTokenOptions = {
+        userId: result.user.uid,
+        accessToken: credential.accessToken,
+        provider: 'google',
+      };
+      await this.users.saveCalendarAccessToken(opts);
+    } catch (e) {
+      console.error(e);
+    }
+  }
 }
 
-export default new FirebaseHelper();
+const firebaseHelper = new FirebaseHelper();
+
+export default firebaseHelper;

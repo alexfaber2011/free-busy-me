@@ -3,41 +3,39 @@ import User from 'lib/user';
 import firebase from 'lib/firebase';
 
 interface IAuthContext {
-  user: User;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<User>; // TODO - confirm password is the same
+  signInWithGoogle: () => void;
 }
 
 const defaultContext: IAuthContext = {
-  user: new User(),
-  signIn: () => Promise.resolve(),
-  signUp: () => Promise.resolve(new User()),
+  signInWithGoogle: () => undefined,
 };
 
 const AuthContext = React.createContext<IAuthContext>(defaultContext);
+//const [storedUser, setStoredUser] = React.useState<UserDocument | null>(null);
 
-export const AuthContextProvider: React.FC = ({ children }) => {
+interface AuthContextProviderProps {
+  children: (user: User) => React.ReactNode;
+}
+
+export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({
+  children
+}) => {
   const [user, setUser] = React.useState<User>(new User);
 
   const value: IAuthContext = {
-    user,
-    signIn: (email, password) => firebase.signIn(email, password),
-    signUp: (email, password) => firebase.signUp(email, password),
+    signInWithGoogle: () => firebase.signInWithGoogle(),
   };
 
   React.useEffect(() => {
-    console.log('User: ', user);
-  }, [user]);
+    const unsubsciber = firebase.onAuthStateChange(setUser);
+    firebase.onRedirectComplete();
 
-  React.useEffect(() => {
-    // By returning the result of onAuthStateChange, this listener will
-    // unsubscriber when this component unmounts
-    return firebase.onAuthStateChange(setUser);
+    return unsubsciber;
   }, []);
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {children(user)}
     </AuthContext.Provider>
   );
 

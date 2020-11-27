@@ -22,7 +22,7 @@ App name: `calendar-gap-slim-v1`
 
 I'm starting with only allowing users to authenticate with Google.  This'll
 allow me to easily interact with the calendar that's part of their google account.
-They'll be able to import calendars into a calendar that calendar-gap will 
+They'll be able to import calendars into a calendar that calendar-gap will
 consume.
 
 ###### Microsoft
@@ -35,7 +35,7 @@ This is the next provider, since Outlook Calendar seems to be heavily used.
 Link: https://console.developers.google.com/apis/
 
 I've got a setup for Development and Production.  Each has a different
-accepted Javascript origin. 
+accepted Javascript origin.
 
 **Both configurations are limited to 100 sensensitive scope logins until the
 [OAuth Conset Screen](https://console.developers.google.com/apis/credentials/consent?project=calendar-gap)

@@ -6,21 +6,12 @@ const SignInScreen: React.FC = () => {
   const [email, setEmail] = React.useState<string>('');
   const [password, setPassword] = React.useState<string>('');
 
-  const { signIn, signUp } = React.useContext(AuthContext);
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    signIn(email, password);
-  };
-
-  const handleSignUp = async () => {
-    await signUp(email, password);
-  };
+  const { signInWithGoogle } = React.useContext(AuthContext);
 
   return (
     <>
       <h2>Sign In</h2>
+      {/*
       <form id="signin" onSubmit={handleSubmit}>
         <label htmlFor="email">Email</label>
         <input
@@ -40,6 +31,8 @@ const SignInScreen: React.FC = () => {
       </form>
       <button form="signin" type="submit">Sign in</button>
       <button onClick={handleSignUp}>Sign up</button>
+        */}
+      <button onClick={signInWithGoogle}>Sign in</button>
     </>
   );
 };

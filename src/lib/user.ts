@@ -15,9 +15,9 @@ export default class User {
   id: string;
   isSignedIn: boolean;
 
-  constructor(options: InitializationOptions = nullOptions) {
-    this.email = options.email || '';
-    this.id = options.id;
-    this.isSignedIn = options.isSignedIn;
+  constructor(args: InitializationOptions | User = nullOptions) {
+    this.email = args.email || '';
+    this.id = args.id;
+    this.isSignedIn = args.isSignedIn;
   }
 }
