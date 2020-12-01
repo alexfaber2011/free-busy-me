@@ -69,12 +69,12 @@ class FirebaseHelper implements IFirebaseHelper {
       if (result.user === null) return;
 
       const credential = result.credential as unknown as GoogleAuthCredential;
-      const opts: SaveCalendarAccessTokenOptions = {
-        userId: result.user.uid,
-        accessToken: credential.accessToken,
-        provider: 'google',
-      };
-      await this.users.saveCalendarAccessToken(opts);
+
+      await this.users
+        .user(result.user.uid)
+        .calendarProviders
+        .google
+        .setAccessToken(credential.accessToken);
     } catch (e) {
       console.error(e);
     }

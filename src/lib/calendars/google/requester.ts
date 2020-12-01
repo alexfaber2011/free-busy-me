@@ -43,7 +43,6 @@ export default class GoogleRequester {
     };
     const params = {
       alt: 'json',
-      key: process.env.REACT_APP_FIREBASE_API_KEY,
     };
     this.axios = axios.create({ headers: baseHeaders, params });
   }

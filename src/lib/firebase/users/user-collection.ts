@@ -1,5 +1,6 @@
 import firebase from 'firebase/app';
 import User from 'lib/user';
+import FirebaseUserDocument from './user-document';
 
 export interface SaveCalendarAccessTokenOptions {
   userId: string;
@@ -7,56 +8,32 @@ export interface SaveCalendarAccessTokenOptions {
   accessToken: string;
 }
 
-export interface UserDocument {
-  calendarProviders: {
-    [name: string]: {
-      accessToken: string;
-    }
-  }
+export interface EnableDisableCalendarOptions {
+  userId: string;
+  provider: 'google';
+  calendarId: string;
 }
 
-type ListenCallbackSuccess = (data: UserDocument) => void;
-type ListenCallbackFailure = () => void;
+export interface UserDocument {
+  foo?: 'bar'
+}
+
+export type FirebaseUserCollection = firebase
+  .firestore
+  .CollectionReference<UserDocument>;
+
+export type FirebaseUserDocumentReference = firebase
+  .firestore
+  .DocumentReference<UserDocument>;
 
 export default class UserCollection {
-  private db: firebase.firestore.Firestore;
-  public collection: firebase.firestore.CollectionReference;
+  public collection: FirebaseUserCollection;
 
   constructor(db: firebase.firestore.Firestore) {
-    this.db = db;
-    this.collection = db.collection('users');
+    this.collection = db.collection('users') as FirebaseUserCollection;
   }
 
-  add(user: User): Promise<void> {
-    return this.collection.doc(user.id).set({ email: user.email });
-  }
-
-  async get(userId: string): Promise<UserDocument | null> {
-    const doc = await this.collection.doc(userId).get();
-    if (doc.exists === false) return null;
-
-    return doc.data() as UserDocument;
-  }
-
-  listen(
-    userId: string,
-    onSuccess: ListenCallbackSuccess,
-    onError: ListenCallbackFailure
-  ): firebase.Unsubscribe {
-    return this.collection.doc(userId).onSnapshot(doc => {
-      if (doc.exists === false) return onError();
-
-      onSuccess(doc.data() as UserDocument);
-    });
-  }
-
-  saveCalendarAccessToken(opts: SaveCalendarAccessTokenOptions): Promise<void> {
-    return this.collection.doc(opts.userId).set({
-      calendarProviders: {
-        [opts.provider]: {
-          accessToken: opts.accessToken,
-        }
-      }
-    }, { merge: true });
+  user(userId: string): FirebaseUserDocument {
+    return new FirebaseUserDocument(this.collection.doc(userId));
   }
 }

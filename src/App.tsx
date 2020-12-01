@@ -4,8 +4,10 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
+  Link,
 } from 'react-router-dom';
-import SignInScreen from './views/sign-in/SignIn';
+import SignIn from './views/sign-in';
+import Home from './views/home';
 import {AuthContextProvider} from 'contexts/auth';
 import {UserContextProvider} from 'contexts/user';
 
@@ -14,14 +16,14 @@ const App: React.FC = () => {
     <AuthContextProvider>
       {(user) => (
         <UserContextProvider user={user}>
-          <h1>Calendar Gap</h1>
-          <Router>
+          <Router forceRefresh={false}>
+            <Link to="/"><h1>Calendar Gap</h1></Link>
             <Switch>
               <Route path='/sign-in'>
-                <SignInScreen />
+                <SignIn />
               </Route>
               <Route path='/'>
-                <h2>Welcome home you!</h2>
+                <Home />
               </Route>
             </Switch>
           </Router>
