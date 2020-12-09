@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import {Calendar, ICalendarRequester} from '../types';
 import Routes from './routes';
 
 type AccessRole = 'freeBusyRole' | 'reader' | 'writer' | 'owner';
@@ -25,13 +26,7 @@ interface GoogleCalendarListPage {
   items: GoogleCalendarListPageItem[];
 }
 
-type Calendar = Pick<
-  GoogleCalendarListPageItem,
-  'description' | 'id' | 'location' | 'timeZone'
-> | { name: string, isOwner: boolean, color: string; };
-
-
-export default class GoogleRequester {
+export default class GoogleRequester implements ICalendarRequester {
   private routes: Routes;
   private axios: AxiosInstance;
 
@@ -50,7 +45,6 @@ export default class GoogleRequester {
   async getCalendarList(): Promise<Calendar[]> {
     try {
       const items = await this.getCalendarListPage();
-      console.log('items: ', items);
       return this.massageCalendarList(items);
     } catch (e) {
       console.error(e);
@@ -74,7 +68,7 @@ export default class GoogleRequester {
     return items.reduce((acc, i) => {
       if (i.hidden) return acc;
 
-      const calendar = {
+      const calendar: Calendar = {
         color: i.backgroundColor || '#42d692',
         description: i.description,
         id: i.id,

@@ -55,7 +55,7 @@ export const UserContextProvider: React.FC<UserContextProviderProps> = ({
     () => setGoogleCalendarProvider(defaultGoogleCalendarProvider);
 
   React.useEffect(() => {
-    if (user.isSignedIn === false) return;
+    if (user.isSignedIn === false) return clearGoogleCalendarProvider();
 
     return firebase.users.user(user.id).calendarProviders.google.listen(
       storeGoogleCalendarProvider,
@@ -73,8 +73,6 @@ export const UserContextProvider: React.FC<UserContextProviderProps> = ({
     }
   };
 
-  // TODO - Next step: figure out where you want to display the calendar
-  // selector
   React.useEffect(() => {
     if (googleCalendarProvider.enabled && googleCalendarProvider.accessToken) {
       fetchCalendarList(googleCalendarProvider.accessToken);
@@ -88,8 +86,6 @@ export const UserContextProvider: React.FC<UserContextProviderProps> = ({
       {children}
     </UserContext.Provider>
   );
-
-
 };
 
 export default UserContext;
