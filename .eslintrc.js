@@ -42,7 +42,7 @@ module.exports = {
       'error',
       {
         'code': 80,
-        'ignoreStrings': false,
+        'ignoreStrings': true,
         'ignoreTrailingComments': true
       }
     ],

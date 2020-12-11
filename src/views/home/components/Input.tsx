@@ -33,7 +33,6 @@ const Calendars: React.FC<CalendarsProps> = ({
         <label htmlFor={calendar.id}>{calendar.name}</label>
       </li>
     ));
-
   };
 
   return (<ul>{renderCalendarListItems()}</ul>);

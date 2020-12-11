@@ -1,33 +1,24 @@
 import * as React from 'react';
 import User from 'lib/user';
 import firebase from 'lib/firebase';
-import GoogleRequester from 'lib/calendars/google';
-import {
-  CalendarProviderData
-} from 'lib/firebase/users/calendar-providers/calendar-providers';
-
-interface UserGoogleCalendarProvider extends CalendarProviderData {
-  enabled: boolean;
-}
+import DecoratedGoogleCalendarProviderData from 'lib/firebase/users/calendar-providers/decorated-google-calendar-provider-data';
 
 interface IUserContext {
   user: User;
   calendarProviders: {
-    google: UserGoogleCalendarProvider;
+    google: DecoratedGoogleCalendarProviderData;
   };
+  updateGoogleCalendarProvider(
+    googleProvider: DecoratedGoogleCalendarProviderData
+  ): Promise<void>;
 }
-
-const defaultGoogleCalendarProvider: UserGoogleCalendarProvider = {
-  enabled: false,
-  accessToken: null,
-  enabledCalendarsById: {}
-};
 
 const defaultContext: IUserContext = {
   user: new User(),
   calendarProviders: {
-    google: defaultGoogleCalendarProvider,
-  }
+    google: new DecoratedGoogleCalendarProviderData(),
+  },
+  updateGoogleCalendarProvider: () => Promise.resolve(),
 };
 
 const UserContext = React.createContext<IUserContext>(defaultContext);
@@ -40,46 +31,40 @@ export const UserContextProvider: React.FC<UserContextProviderProps> = ({
   user,
   children
 }) => {
-  const [googleCalendarProvider, setGoogleCalendarProvider] = React.useState<
-    UserGoogleCalendarProvider
-  >(defaultGoogleCalendarProvider);
+  const [decoratedGoogleProvider, setDecoratedGoogleProvider] = React.useState<
+    DecoratedGoogleCalendarProviderData
+  >(new DecoratedGoogleCalendarProviderData());
 
-  const storeGoogleCalendarProvider = (provider: CalendarProviderData) => {
-    setGoogleCalendarProvider({
-      enabled: true,
-      ...provider
-    });
-  };
-
-  const clearGoogleCalendarProvider =
-    () => setGoogleCalendarProvider(defaultGoogleCalendarProvider);
+  const clearGoogleCalendarProviderData =
+    () => setDecoratedGoogleProvider(new DecoratedGoogleCalendarProviderData());
 
   React.useEffect(() => {
-    if (user.isSignedIn === false) return clearGoogleCalendarProvider();
+    if (user.isSignedIn === false) return clearGoogleCalendarProviderData();
 
     return firebase.users.user(user.id).calendarProviders.google.listen(
-      storeGoogleCalendarProvider,
-      clearGoogleCalendarProvider
+      setDecoratedGoogleProvider,
+      () => setDecoratedGoogleProvider(new DecoratedGoogleCalendarProviderData)
     );
   }, [user]);
 
-  const fetchCalendarList = async (accessToken: string) => {
-    const requester = new GoogleRequester(accessToken);
-    try {
-      const response = await requester.getCalendarList();
-      console.log('response: ', response);
-    } catch (e) {
-      console.error(e);
-    }
+  const updateGoogleCalendarProvider = (
+    googleProvider: DecoratedGoogleCalendarProviderData
+  ): Promise<void> => {
+    return firebase
+      .users
+      .user(user.id)
+      .calendarProviders
+      .google
+      .set(googleProvider);
   };
 
-  React.useEffect(() => {
-    if (googleCalendarProvider.enabled && googleCalendarProvider.accessToken) {
-      fetchCalendarList(googleCalendarProvider.accessToken);
-    }
-  }, [googleCalendarProvider]);
-
-  const value = { user, calendarProviders: { google: googleCalendarProvider } };
+  const value = {
+    user,
+    calendarProviders: {
+      google: decoratedGoogleProvider
+    },
+    updateGoogleCalendarProvider,
+  };
 
   return (
     <UserContext.Provider value={value}>

@@ -11,8 +11,8 @@ export const CalendarRequesterContextProvider: React.FC = ({ children }) => {
   const { calendarProviders } = React.useContext(UserContext);
 
   const requester = React.useMemo(() => {
-    const noProvidersEnabled = calendarProviders.google.enabled === false;
-    const accessToken = calendarProviders.google.accessToken;
+    const noProvidersEnabled = calendarProviders.google.isEnabled() === false;
+    const accessToken = calendarProviders.google.getAccessToken();
     if (noProvidersEnabled || !accessToken) return new NullCalendarRequester();
 
     return new GoogleRequester(accessToken);

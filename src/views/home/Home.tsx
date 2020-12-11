@@ -6,10 +6,15 @@ import Input from './components/Input';
 import Output from './components/Output';
 
 const Home: React.FC = () => {
-  const { calendarProviders } = React.useContext(UserContext);
+  const {
+    calendarProviders,
+    updateGoogleCalendarProvider
+  } = React.useContext(UserContext);
   const requester = React.useContext(CalendarRequesterContext);
   const [calendars, setCalendars] = React.useState<Calendar[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+
+  const googleProvider = calendarProviders.google;
 
   const fetchCalendarList = async () => {
     setIsLoading(true);
@@ -24,20 +29,24 @@ const Home: React.FC = () => {
     }
   };
 
-  const calendarProviderName = calendarProviders.google.enabled
+  const calendarProviderName = googleProvider.isEnabled()
     ? 'Google'
     : null;
 
   const reducedCalendars = calendars.map(calendar => ({
     color: calendar.color,
-    enabled: true,
+    enabled: googleProvider.calendarIsEnabled(calendar.id),
     id: calendar.id,
     name: calendar.name,
   }));
 
-  const handleCalendarToggle = (calendarId: string, enabled: boolean) => {
-    console.log('calendarId: ', calendarId);
-    console.log('enabled: ', enabled);
+  const handleCalendarToggle = async (calendarId: string) => {
+    googleProvider.toggleCalendar(calendarId);
+    try {
+      await updateGoogleCalendarProvider(googleProvider);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (

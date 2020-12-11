@@ -1,35 +1,40 @@
 import firebase from 'firebase/app';
 import {
-  CalendarProviderData,
   FirebaseCalendarProviderCollection
 } from './calendar-providers';
+import DecoratedGoogleCalendarProviderData from './decorated-google-calendar-provider-data';
+import googleCalendarProviderConverter from './google-calendar-provider-converter';
 
-type ListenCallbackSuccess = (data: CalendarProviderData) => void;
+type ListenCallbackSuccess =
+  (data: DecoratedGoogleCalendarProviderData) => void;
 type ListenCallbackFailure = () => void;
 
+type GoogleCalendarCollectionReference = firebase.firestore.CollectionReference<
+  DecoratedGoogleCalendarProviderData
+>;
+
 export default class GoogleCalendarProvider {
-  private calendarProvidersCollection: FirebaseCalendarProviderCollection;
+  private calendarProvidersCollection: GoogleCalendarCollectionReference;
 
   constructor(calendarCollection: FirebaseCalendarProviderCollection) {
-    this.calendarProvidersCollection = calendarCollection;
+    this.calendarProvidersCollection = calendarCollection
+      .withConverter(googleCalendarProviderConverter);
   }
 
-  async disableCalendar(calendarId: string): Promise<void> {
-    return this.calendarProvidersCollection.doc('google').update({
-      [`enabledCalendarsById.${calendarId}`]: false,
-    });
-  }
-
-  async enableCalendar(calendarId: string): Promise<void> {
-    return this.calendarProvidersCollection.doc('google').update({
-      [`enabledCalendarsById.${calendarId}`]: true,
-    });
+  set(googleProvider: DecoratedGoogleCalendarProviderData): Promise<void> {
+    return this.calendarProvidersCollection
+      .doc('google')
+      .set(googleProvider, { merge: true });
   }
 
   async setAccessToken(token: string): Promise<void> {
-    return this.calendarProvidersCollection.doc('google').set({
-      accessToken: token,
-    }, { merge: true });
+    const snapshot = await this.calendarProvidersCollection.doc('google').get();
+    const googleProvider = snapshot.data()
+      || new DecoratedGoogleCalendarProviderData();
+    googleProvider.setAccessToken(token);
+    return this.calendarProvidersCollection.doc('google').set(googleProvider, {
+      merge: true
+    });
   }
 
   listen(

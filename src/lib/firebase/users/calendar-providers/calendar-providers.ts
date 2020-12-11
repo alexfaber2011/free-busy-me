@@ -4,7 +4,7 @@ import GoogleCalendarProvider from './google-calendar-provider';
 
 export interface CalendarProviderData {
   accessToken: string | null;
-  enabledCalendarsById: Record<string, boolean>;
+  enabledCalendarIds: Array<string>;
 }
 
 export type FirebaseCalendarProviderCollection = firebase
