@@ -52,6 +52,15 @@ export default class GoogleRequester implements ICalendarRequester {
     }
   }
 
+  async needsToAuthenticate(): Promise<boolean> {
+    try {
+      await this.axios.get(this.routes.calendarList);
+      return false;
+    } catch {
+      return true;
+    }
+  }
+
   private async getCalendarListPage(
     acc: GoogleCalendarListPageItem[] = []
   ): Promise<GoogleCalendarListPageItem[]> {

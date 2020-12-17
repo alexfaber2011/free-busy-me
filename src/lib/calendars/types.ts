@@ -9,5 +9,6 @@ export interface Calendar {
 }
 
 export interface ICalendarRequester {
-  getCalendarList(): Promise<Calendar[]>
+  getCalendarList(): Promise<Calendar[]>;
+  needsToAuthenticate(): Promise<boolean>;
 }
