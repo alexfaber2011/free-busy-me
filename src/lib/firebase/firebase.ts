@@ -1,7 +1,7 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
-import UserCollection, { SaveCalendarAccessTokenOptions } from './users';
+import UserCollection from './users';
 import User from 'lib/user';
 
 // General Setup
@@ -26,8 +26,7 @@ type GoogleAuthCredential = { accessToken: string };
 
 export interface IFirebaseHelper {
   onAuthStateChange(cb: OnAuthStateChangeListener): firebase.Unsubscribe;
-  signInWithGoogle(): void;
-  onRedirectComplete(): Promise<void>;
+  signInWithGoogle(): Promise<User>;
 }
 
 class FirebaseHelper implements IFirebaseHelper {
@@ -54,19 +53,26 @@ class FirebaseHelper implements IFirebaseHelper {
     });
   }
 
-  signInWithGoogle(): void {
+  async signInWithGoogle(): Promise<User> {
     const provider = new this.firebase.auth.GoogleAuthProvider();
     const calendars = 'https://www.googleapis.com/auth/calendar.readonly';
     const events = 'https://www.googleapis.com/auth/calendar.events.readonly';
     provider.addScope(calendars);
     provider.addScope(events);
-    this.firebase.auth().signInWithRedirect(provider);
+    try {
+      const result = await this.firebase.auth().signInWithPopup(provider);
+      return this.handleSignInResult(result);
+    } catch(e) {
+      console.error(e);
+      throw e;
+    }
   }
 
-  async onRedirectComplete(): Promise<void> {
+  async handleSignInResult(
+    result: firebase.auth.UserCredential
+  ): Promise<User> {
     try {
-      const result = await this.firebase.auth().getRedirectResult();
-      if (result.user === null) return;
+      if (result.user === null) throw 'No user from firebase';
 
       const credential = result.credential as unknown as GoogleAuthCredential;
 
@@ -75,8 +81,16 @@ class FirebaseHelper implements IFirebaseHelper {
         .calendarProviders
         .google
         .setAccessToken(credential.accessToken);
+
+      const options = {
+        email: result.user.email,
+        id: result.user.uid,
+        isSignedIn: true
+      };
+      return new User(options);
     } catch (e) {
       console.error(e);
+      throw e;
     }
   }
 }

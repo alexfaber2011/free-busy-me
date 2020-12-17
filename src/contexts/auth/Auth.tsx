@@ -3,15 +3,14 @@ import User from 'lib/user';
 import firebase from 'lib/firebase';
 
 interface IAuthContext {
-  signInWithGoogle: () => void;
+  signInWithGoogle: () => Promise<void>;
 }
 
 const defaultContext: IAuthContext = {
-  signInWithGoogle: () => undefined,
+  signInWithGoogle: () => Promise.resolve(),
 };
 
 const AuthContext = React.createContext<IAuthContext>(defaultContext);
-//const [storedUser, setStoredUser] = React.useState<UserDocument | null>(null);
 
 interface AuthContextProviderProps {
   children: (user: User) => React.ReactNode;
@@ -22,16 +21,21 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({
 }) => {
   const [user, setUser] = React.useState<User>(new User);
 
-  const value: IAuthContext = {
-    signInWithGoogle: () => firebase.signInWithGoogle(),
+  const signInWithGoogle = async () => {
+    try {
+      await firebase.signInWithGoogle();
+    } catch {
+      setUser(new User);
+    }
   };
 
   React.useEffect(() => {
     const unsubsciber = firebase.onAuthStateChange(setUser);
-    firebase.onRedirectComplete();
-
     return unsubsciber;
   }, []);
+
+
+  const value: IAuthContext = { signInWithGoogle };
 
   return (
     <AuthContext.Provider value={value}>

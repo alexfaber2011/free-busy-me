@@ -1,5 +1,4 @@
 import firebase from 'firebase/app';
-import User from 'lib/user';
 import FirebaseUserDocument from './user-document';
 
 export interface SaveCalendarAccessTokenOptions {
