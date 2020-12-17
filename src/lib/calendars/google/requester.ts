@@ -90,7 +90,6 @@ export default class GoogleRequester implements ICalendarRequester {
       const response = await this.axios.post<
         FreeBusyResponse
       >(this.routes.freeBusy, this.prepareFreeBusyRequestBody(options));
-      console.log('response: ', response);
       return this.massageFreeBusyResponse(response.data);
     } catch (e) {
       console.error(e);
@@ -128,7 +127,6 @@ export default class GoogleRequester implements ICalendarRequester {
     return this.toRFC3339(d);
   }
 
-  // TODO - confirm this is correct
   private toRFC3339(date: DateTime): string {
     return date.toISO();
   }
