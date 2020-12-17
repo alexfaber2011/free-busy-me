@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
-import {Calendar, ICalendarRequester} from '../types';
+import {DateTime} from 'luxon';
+import {Calendar, FreeBusy, FreeBusyEvent, FreeBusyOptions, ICalendarRequester} from '../types';
 import Routes from './routes';
 
 type AccessRole = 'freeBusyRole' | 'reader' | 'writer' | 'owner';
@@ -24,6 +25,38 @@ interface GoogleCalendarListPage {
   nextPageToken: string | undefined; // used to access the next page of this result
   nextSyncToken: string | undefined; // used at a later point in time to retrieve only the entries that have changed
   items: GoogleCalendarListPageItem[];
+}
+
+interface FreeBusyRequestBody {
+  timeMin: string; // datetime RFC3339
+  timeMax: string; // datetime RFC3339
+  calendarExpansionMax: number;
+  items: Array<{id: string}>; // calendar ids
+}
+
+interface FreeBusyError {
+  domain: string;
+  reason: string;
+}
+
+interface CalInfoFreeBusyEvent {
+  start: string;
+  end: string;
+}
+
+interface FreeBusyCalendarInfo {
+  errors?: FreeBusyError;
+  busy: CalInfoFreeBusyEvent[];
+}
+
+// https://developers.google.com/calendar/v3/reference/freebusy/query
+interface FreeBusyResponse {
+  kind: string;
+  timeMin: string;
+  timeMax: string;
+  calendars?: {
+    [calendarId: string]: FreeBusyCalendarInfo;
+  }
 }
 
 export default class GoogleRequester implements ICalendarRequester {
@@ -52,6 +85,19 @@ export default class GoogleRequester implements ICalendarRequester {
     }
   }
 
+  async getFreeBusy(options: FreeBusyOptions): Promise<FreeBusy> {
+    try {
+      const response = await this.axios.post<
+        FreeBusyResponse
+      >(this.routes.freeBusy, this.prepareFreeBusyRequestBody(options));
+      console.log('response: ', response);
+      return this.massageFreeBusyResponse(response.data);
+    } catch (e) {
+      console.error(e);
+      throw 'Unable to fetch free busy info from Google';
+    }
+  }
+
   async needsToAuthenticate(): Promise<boolean> {
     try {
       await this.axios.get(this.routes.calendarList);
@@ -59,6 +105,53 @@ export default class GoogleRequester implements ICalendarRequester {
     } catch {
       return true;
     }
+  }
+
+  private prepareFreeBusyRequestBody = (
+    options: FreeBusyOptions
+  ): FreeBusyRequestBody => {
+    return {
+      timeMin: this.buildTimeMin(options.startDate),
+      timeMax: this.buildTimeMax(options.endDate),
+      calendarExpansionMax: 50,
+      items: options.calendarIds.map(id => ({ id })),
+    };
+  }
+
+  private buildTimeMin(date?: DateTime): string {
+    const d = date || DateTime.local();
+    return this.toRFC3339(d);
+  }
+
+  private buildTimeMax(date?: DateTime): string {
+    const d = date || DateTime.local().plus({weeks: 2});
+    return this.toRFC3339(d);
+  }
+
+  // TODO - confirm this is correct
+  private toRFC3339(date: DateTime): string {
+    return date.toISO();
+  }
+
+  private massageFreeBusyResponse(response: FreeBusyResponse): FreeBusy {
+    if (!response.calendars) return {};
+
+    return Object.entries(response.calendars)
+      .reduce((acc, [calendarId, v]) => {
+        return {
+          ...acc,
+          [calendarId]: this.toEventArray(v),
+        };
+      }, {});
+  }
+
+  private toEventArray(i: FreeBusyCalendarInfo): FreeBusyEvent[] {
+    if (i.errors || !i.busy) return [];
+
+    return i.busy.map(b => ({
+      start: DateTime.fromISO(b.start),
+      end: DateTime.fromISO(b.end),
+    }));
   }
 
   private async getCalendarListPage(
