@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import {DateTime} from 'luxon';
-import {Calendar, FreeBusy, FreeBusyEvent, FreeBusyOptions, ICalendarRequester} from '../types';
+import {Calendar, FreeBusy, Event, FreeBusyOptions, ICalendarRequester} from '../types';
 import Routes from './routes';
 
 type AccessRole = 'freeBusyRole' | 'reader' | 'writer' | 'owner';
@@ -143,7 +143,7 @@ export default class GoogleRequester implements ICalendarRequester {
       }, {});
   }
 
-  private toEventArray(i: FreeBusyCalendarInfo): FreeBusyEvent[] {
+  private toEventArray(i: FreeBusyCalendarInfo): Event[] {
     if (i.errors || !i.busy) return [];
 
     return i.busy.map(b => ({

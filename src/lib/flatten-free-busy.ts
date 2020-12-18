@@ -1,21 +1,21 @@
-import { FreeBusy, FreeBusyEvent } from './calendars';
+import { FreeBusy, Event } from './calendars';
 import DecoratedEvent from './decorated-event';
 
 export const combineEventsFromCalendars = (
   freeBusy: FreeBusy
-): FreeBusyEvent[] => {
+): Event[] => {
   return Object.values(freeBusy).flatMap(x => x);
 };
 
-export const sort = (events: FreeBusyEvent[]): FreeBusyEvent[] => {
+export const sort = (events: Event[]): Event[] => {
   return events.sort((a, b) => (a.start.toMillis() - b.start.toMillis()));
 };
 
 const executeUniqueStep = (
-  current: FreeBusyEvent | null = null,
-  remainingEvents: FreeBusyEvent[],
-  uniqueEvents: FreeBusyEvent[]
-): FreeBusyEvent[] => {
+  current: Event | null = null,
+  remainingEvents: Event[],
+  uniqueEvents: Event[]
+): Event[] => {
   if (current === null) return uniqueEvents;
 
   const currentEvent = new DecoratedEvent(current);
@@ -42,11 +42,11 @@ const executeUniqueStep = (
 /**
  * precondition: events must be sorted by start
  */
-const unique = (events: FreeBusyEvent[]): FreeBusyEvent[] => {
+export const unique = (events: Event[]): Event[] => {
   return executeUniqueStep(events[0], events.slice(1), []);
 };
 
-export default (freeBusy: FreeBusy): FreeBusyEvent[] => {
+export default (freeBusy: FreeBusy): Event[] => {
   if (Object.keys(freeBusy).length === 0) return [];
 
   return unique(sort(combineEventsFromCalendars(freeBusy)));

@@ -16,13 +16,13 @@ export interface FreeBusyOptions {
   calendarIds: string[];
 }
 
-export interface FreeBusyEvent {
+export interface Event {
   start: DateTime;
   end: DateTime;
 }
 
 export interface FreeBusy {
-  [calendarId: string]: FreeBusyEvent[];
+  [calendarId: string]: Event[];
 }
 
 export interface ICalendarRequester {
