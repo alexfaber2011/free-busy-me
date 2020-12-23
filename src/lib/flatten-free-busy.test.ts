@@ -2,7 +2,7 @@ import {FreeBusy} from './calendars';
 import flatten, {combineEventsFromCalendars, sort} from './flatten-free-busy';
 import { DateTime } from 'luxon';
 
-const currentTime = DateTime.local();
+const currentTime = DateTime.local().setZone('America/Chicago');
 const event1 = {
   start: currentTime,
   end: currentTime.plus({ hours: 1 })

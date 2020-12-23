@@ -4,15 +4,10 @@ import { Event } from './calendars';
 
 /*
    *|===|===|===|===|===|
-   *--1--
    *----2----
    *            ----4----
    */
-const currentTime = DateTime.fromISO('2020-01-01');
-const event1 = {
-  start: currentTime,
-  end: currentTime.plus({ hours: 1 })
-};
+const currentTime = DateTime.fromISO('2020-01-01', { zone: 'America/Chicago' });
 const event2 = {
   start: currentTime,
   end: currentTime.plus({ hours: 2 })
