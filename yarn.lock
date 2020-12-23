@@ -1868,6 +1868,11 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/countries-and-timezones@^2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@types/countries-and-timezones/-/countries-and-timezones-2.0.3.tgz#0b889d6105ad33c4995b5fc3b84636156aa3acfd"
+  integrity sha512-P1LCigalHJA3fOsMNqXAzjkiaK5VCFaXUpHqIwUoc19clJoD/2VlC9JuRWizP3YCPeNekJBANEY9IFSIp0prBw==
+
 "@types/eslint@^7.2.0":
   version "7.2.4"
   resolved "https://registry.yarnpkg.com/@types/eslint/-/eslint-7.2.4.tgz#d12eeed7741d2491b69808576ac2d20c14f74c41"
@@ -3901,6 +3906,11 @@ cosmiconfig@^6.0.0:
     parse-json "^5.0.0"
     path-type "^4.0.0"
     yaml "^1.7.2"
+
+countries-and-timezones@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/countries-and-timezones/-/countries-and-timezones-2.3.1.tgz#4311351da69670a6a3eb9e842716adca9ff55fa8"
+  integrity sha512-GYgwjwF2FBezIeJVOeHtQVavQY9E2CdG7LjQIrriuC8BPGxaQht0i+QAd1adgvXK7U28xJ1o2yCK6DLS1Avmsw==
 
 create-ecdh@^4.0.0:
   version "4.0.4"
