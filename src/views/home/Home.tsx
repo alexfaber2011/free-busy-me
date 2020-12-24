@@ -2,6 +2,7 @@ import CalendarRequesterContext from 'contexts/calendar-requester';
 import UserContext from 'contexts/user';
 import {Calendar, FreeBusy} from 'lib/calendars';
 import * as React from 'react';
+import FreeBusyComputer from './components/FreeBusyComputer';
 import Input from './components/Input';
 import Output from './components/Output';
 
@@ -13,7 +14,6 @@ const Home: React.FC = () => {
   const requester = React.useContext(CalendarRequesterContext);
   const [calendars, setCalendars] = React.useState<Calendar[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const [freeBusy, setFreeBusy] = React.useState<FreeBusy | null>(null);
 
   const googleProvider = calendarProviders.google;
 
@@ -50,27 +50,15 @@ const Home: React.FC = () => {
     }
   };
 
-  const fetchFreeBusy = async () => {
-    const options = {
-      calendarIds: googleProvider.getEnabledCalendarIdsArray(),
-    };
-    try {
-      const fb = await requester.getFreeBusy(options);
-      setFreeBusy(fb);
-    } catch {
-      setFreeBusy(null);
-    }
-  };
-
-  React.useEffect(() => {
-    if (googleProvider.isEnabled() === false) return;
-
-    fetchFreeBusy();
-  }, [googleProvider]);
-
   return (
     <>
-      <Output freeBusy={freeBusy} />
+      <FreeBusyComputer
+        requester={requester}
+        calendarIds={googleProvider.getEnabledCalendarIdsArray()}>
+        {({ result, error, isComputing }) => (
+          <Output group={result} error={error} renderLoading={isComputing} />
+        )}
+      </FreeBusyComputer>
       <Input
         calendarProviderName={calendarProviderName}
         isLoading={isLoading}

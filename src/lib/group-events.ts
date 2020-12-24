@@ -81,7 +81,7 @@ const pluckEvents = (
   }, [] as Event[]);
 };
 
-interface Group {
+export interface Group {
   type: GroupBy;
   start: DateTime;
   events: Event[]
