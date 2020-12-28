@@ -1,10 +1,12 @@
 import CalendarRequesterContext from 'contexts/calendar-requester';
 import UserContext from 'contexts/user';
-import {Calendar, FreeBusy} from 'lib/calendars';
+import {Calendar} from 'lib/calendars';
+import {DateTime} from 'luxon';
 import * as React from 'react';
 import FreeBusyComputer from './components/FreeBusyComputer';
 import Input from './components/Input';
 import Output from './components/Output';
+import TimeBoundary from './components/TimeBoundary';
 
 const Home: React.FC = () => {
   const {
@@ -14,6 +16,12 @@ const Home: React.FC = () => {
   const requester = React.useContext(CalendarRequesterContext);
   const [calendars, setCalendars] = React.useState<Calendar[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [boundaryStart, setBoundaryStart] = React.useState<DateTime>(
+    DateTime.local()
+  );
+  const [boundaryEnd, setBoundaryEnd] = React.useState<DateTime>(
+    DateTime.local().plus({ weeks: 2 })
+  );
 
   const googleProvider = calendarProviders.google;
 
@@ -53,6 +61,8 @@ const Home: React.FC = () => {
   return (
     <>
       <FreeBusyComputer
+        start={boundaryStart}
+        end={boundaryEnd}
         requester={requester}
         calendarIds={googleProvider.getEnabledCalendarIdsArray()}>
         {({ result, error, isComputing }) => (
@@ -64,6 +74,12 @@ const Home: React.FC = () => {
         isLoading={isLoading}
         calendars={reducedCalendars}
         onCalendarToggle={handleCalendarToggle}
+      />
+      <TimeBoundary
+        start={boundaryStart}
+        end={boundaryEnd}
+        onStartChanged={setBoundaryStart}
+        onEndChanged={setBoundaryEnd}
       />
       <button onClick={fetchCalendarList}>Get</button>
     </>

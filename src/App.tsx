@@ -10,6 +10,7 @@ import Home from './views/home';
 import {AuthContextProvider} from 'contexts/auth';
 import {UserContextProvider} from 'contexts/user';
 import {CalendarRequesterContextProvider} from 'contexts/calendar-requester';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const App: React.FC = () => {
   return (

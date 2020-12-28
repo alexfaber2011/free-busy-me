@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { FreeBusy, ICalendarRequester } from 'lib/calendars';
+import { FreeBusy, FreeBusyOptions, ICalendarRequester } from 'lib/calendars';
 import groupEvents, {Group} from 'lib/group-events';
 import flatten from 'lib/flatten-free-busy';
 import busyToFree from 'lib/busy-to-free';
+import { DateTime } from 'luxon';
 
 interface Output {
   result: Group[];
@@ -11,16 +12,20 @@ interface Output {
 }
 
 interface FreeBusyComputerProps {
-  requester: ICalendarRequester;
   calendarIds: string[];
-  timeZone?: string;
   children(output: Output): React.ReactNode;
+  end: DateTime;
+  requester: ICalendarRequester;
+  start: DateTime;
+  timeZone?: string;
 }
 
 const FreeBusyComputer: React.FC<FreeBusyComputerProps> = ({
   calendarIds,
   children,
+  end,
   requester,
+  start,
   timeZone = 'America/Chicago',
 }) => {
   const [isFetching, setIsFetching] = React.useState<boolean>(false);
@@ -32,7 +37,12 @@ const FreeBusyComputer: React.FC<FreeBusyComputerProps> = ({
     if (calendarIds.length === 0) return;
 
     setIsFetching(true);
-    const options = { calendarIds };
+    const options: FreeBusyOptions = {
+      calendarIds,
+      startDate: start,
+      endDate: end,
+    };
+
     try {
       const fb = await requester.getFreeBusy(options);
       setFreeBusy(fb);
@@ -48,7 +58,7 @@ const FreeBusyComputer: React.FC<FreeBusyComputerProps> = ({
 
   React.useEffect(() => {
     fetchFreeBusy();
-  }, [requester, calendarIds]);
+  }, [requester, calendarIds, start, end]);
 
   const computed: Group[] = React.useMemo(() => {
     if (error || freeBusy === null) return [];
@@ -56,11 +66,11 @@ const FreeBusyComputer: React.FC<FreeBusyComputerProps> = ({
 
     setIsCalculating(true);
     const flattened = flatten(freeBusy);
-    const free = busyToFree(flattened);
+    const free = busyToFree(flattened, start, end);
     const grouped = groupEvents(free, { by: 'day', timeZone });
     setIsCalculating(false);
     return grouped;
-  }, [freeBusy, error]);
+  }, [freeBusy, error, start, end]);
 
   return <>{children({
     result: computed,
