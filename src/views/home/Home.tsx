@@ -60,6 +60,10 @@ const Home: React.FC = () => {
 
   return (
     <>
+      <h1>freebusy.me</h1>
+      <p>
+        <em>busy me, free</em>
+      </p>
       <FreeBusyComputer
         start={boundaryStart}
         end={boundaryEnd}
