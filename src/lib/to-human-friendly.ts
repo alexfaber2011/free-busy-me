@@ -1,6 +1,7 @@
 import {DateTime} from 'luxon';
 import { Group } from './group-events';
 import { Event } from './calendars';
+import rest from './rest';
 
 const getDayLabel = (date: DateTime): string => {
   return date.toFormat('cccc, LLL d'); // Thursday, Jan 7
@@ -33,13 +34,13 @@ const getDescriptionFor = (
   if (remaining.length === 0) return `${acc} ${descEvent}`;
 
   const newAcc = `${acc} ${descEvent} and from`;
-  return getDescriptionFor(remaining[0], remaining.splice(1), newAcc);
+  return getDescriptionFor(remaining[0], rest(remaining), newAcc);
 };
 
 const getDescription = ({ events }: Group): string => {
   if (events.length === 0) return 'open';
 
-  return getDescriptionFor(events[0], events.splice(1), 'from');
+  return getDescriptionFor(events[0], rest(events), 'from');
 };
 
 export interface HumanFriendly {

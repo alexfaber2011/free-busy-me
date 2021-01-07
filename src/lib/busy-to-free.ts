@@ -2,6 +2,7 @@ import { DateTime } from 'luxon';
 import { Event } from './calendars';
 import DecoratedEvent from './decorated-event';
 import { sort, unique } from './flatten-free-busy';
+import rest from './rest';
 
 const establishEnd = (
   currentEvent: Event, // This shouldn't have a proper end date yet
@@ -24,7 +25,7 @@ const establishEnd = (
   currentEvent.end = currentBusyEvent.start;
 
   const nextEvent = { start: currentBusyEvent.end, end: DateTime.local() };
-  const r = remainingBusyEvents.splice(1);
+  const r = rest(remainingBusyEvents);
   const f = [...freeEvents, currentEvent];
 
   return establishEnd(nextEvent, r, f, boundaryEnd);
@@ -42,7 +43,7 @@ const busyToFree = (
 
   if (firstBusyEvent.overlaps(boundaryStart)) {
     const currentFree = { start: firstBusyEvent.end, end: DateTime.local() };
-    const remainingEvents = b.splice(1);
+    const remainingEvents = rest(b);
     const freeEvents: Event[] = [];
     return establishEnd(currentFree, remainingEvents, freeEvents, boundaryEnd);
   }

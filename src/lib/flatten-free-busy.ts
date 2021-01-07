@@ -46,6 +46,8 @@ export const unique = (events: Event[]): Event[] => {
   return executeUniqueStep(events[0], events.slice(1), []);
 };
 
+// TODO - there may be a bug in here where two events on the same day aren't
+// sticking around
 export default (freeBusy: FreeBusy): Event[] => {
   if (Object.keys(freeBusy).length === 0) return [];
 

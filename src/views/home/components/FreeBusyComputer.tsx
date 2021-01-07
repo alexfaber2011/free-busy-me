@@ -28,15 +28,14 @@ const FreeBusyComputer: React.FC<FreeBusyComputerProps> = ({
   start,
   timeZone = 'America/Chicago',
 }) => {
-  const [isFetching, setIsFetching] = React.useState<boolean>(false);
-  const [isCalculating, setIsCalculating] = React.useState<boolean>(false);
-  const [freeBusy, setFreeBusy] = React.useState<FreeBusy | null>({});
+  const [isComputing, setIsComputing] = React.useState<boolean>(false);
+  const [result, setResult] = React.useState<Group[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
-  const fetchFreeBusy = async () => {
-    if (calendarIds.length === 0) return;
+  const fetchFreeBusy = async (): Promise<FreeBusy> => {
+    if (calendarIds.length === 0) return {};
 
-    setIsFetching(true);
+    setIsComputing(true);
     const options: FreeBusyOptions = {
       calendarIds,
       startDate: start,
@@ -45,38 +44,38 @@ const FreeBusyComputer: React.FC<FreeBusyComputerProps> = ({
 
     try {
       const fb = await requester.getFreeBusy(options);
-      setFreeBusy(fb);
       setError(null);
+      return fb;
     } catch (e) {
       console.error(e);
-      setFreeBusy(null);
       setError(e.message);
-    } finally {
-      setIsFetching(false);
+      setIsComputing(false);
+      return {};
     }
   };
 
-  React.useEffect(() => {
-    fetchFreeBusy();
-  }, [requester, calendarIds, start, end]);
-
-  const computed: Group[] = React.useMemo(() => {
-    if (error || freeBusy === null) return [];
+  const compute = (freeBusy: FreeBusy | null = null): Group[] => {
+    if (freeBusy === null) return [];
     if (Object.keys(freeBusy).length === 0) return [];
 
-    setIsCalculating(true);
     const flattened = flatten(freeBusy);
     const free = busyToFree(flattened, start, end);
     const grouped = groupEvents(free, { by: 'day', timeZone });
-    setIsCalculating(false);
+    setIsComputing(false);
     return grouped;
-  }, [freeBusy, error, start, end]);
+  };
 
-  return <>{children({
-    result: computed,
-    error,
-    isComputing: isFetching || isCalculating,
-  })}</>;
+  const work = async () => {
+    const fb = await fetchFreeBusy();
+    const computed = compute(fb);
+    setResult(computed);
+  };
+
+  React.useEffect(() => {
+    work();
+  }, [requester, calendarIds, start, end, timeZone]);
+
+  return <>{children({ result, error, isComputing })}</>;
 };
 
 export default FreeBusyComputer;
